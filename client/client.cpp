@@ -1,6 +1,7 @@
 #include <iostream>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <string>
 #include <cstring>
 
 #pragma comment(lib, "ws2_32.lib")
@@ -82,12 +83,14 @@ int main()
 
 
     // 5. Send a message to the server
-    const char* message = "Hello Server!";
+    string message;
+    cout<<"Enter message: ";
+    getline(cin, message);
 
     int bytesSent = send(
         clientSocket,
-        message,
-        static_cast<int>(strlen(message)),
+        message.c_str(),
+        static_cast<int>(message.length()),
         0
     );
 
