@@ -90,6 +90,12 @@ int main()
         cout << "You: ";
         getline(cin, message);
 
+        // Check for quit command
+        if (message == "/quit")
+        {
+            cout << "Closing connection..." << endl;
+            break;
+        }
 
         // Send the message to the server
         int bytesSent = send(
