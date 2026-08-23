@@ -82,60 +82,63 @@ int main()
          << endl;
 
 
-    // 5. Send a message to the server
-    string message;
-    cout<<"Enter message: ";
-    getline(cin, message);
-
-    int bytesSent = send(
-        clientSocket,
-        message.c_str(),
-        static_cast<int>(message.length()),
-        0
-    );
-
-    if (bytesSent == SOCKET_ERROR)
+    // 5. Start the messaging loop
+    while (true)
     {
-        cerr << "Send failed. Error: "
-            << WSAGetLastError() << endl;
+        string message;
 
-        closesocket(clientSocket);
-        WSACleanup();
+        cout << "You: ";
+        getline(cin, message);
 
-        return 1;
+
+        // Send the message to the server
+        int bytesSent = send(
+            clientSocket,
+            message.c_str(),
+            static_cast<int>(message.length()),
+            0
+        );
+
+        if (bytesSent == SOCKET_ERROR)
+        {
+            cerr << "Send failed. Error: "
+                << WSAGetLastError() << endl;
+
+            break;
+        }
+
+
+        // Receive response from server
+        char buffer[1024];
+
+        int bytesReceived = recv(
+            clientSocket,
+            buffer,
+            sizeof(buffer) - 1,
+            0
+        );
+
+        if (bytesReceived == 0)
+        {
+            cout << "Server disconnected." << endl;
+            break;
+        }
+
+        if (bytesReceived == SOCKET_ERROR)
+        {
+            cerr << "Receive failed. Error: "
+                << WSAGetLastError() << endl;
+
+            break;
+        }
+
+        buffer[bytesReceived] = '\0';
+
+        cout << "Server: " << buffer << endl;
     }
 
-    cout << "Message sent to server."
-        << endl;
 
-
-    // 6. Receive the server's response
-    char buffer[1024];
-
-    int bytesReceived = recv(
-        clientSocket,
-        buffer,
-        sizeof(buffer) - 1,
-        0
-    );
-
-    if (bytesReceived == SOCKET_ERROR)
-    {
-        cerr << "Receive failed. Error: "
-            << WSAGetLastError() << endl;
-
-        closesocket(clientSocket);
-        WSACleanup();
-
-        return 1;
-    }
-
-    buffer[bytesReceived] = '\0';
-
-    cout << "Server: " << buffer << endl;
-
-
-    // 7. Clean up
+    // 6. Clean up
     closesocket(clientSocket);
     WSACleanup();
 

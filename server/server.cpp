@@ -118,60 +118,62 @@ int main()
         << endl;
 
 
-    // 7. Receive a message from the client
-    char buffer[1024];
-
-    int bytesReceived = recv(
-        clientSocket,
-        buffer,
-        sizeof(buffer) - 1,
-        0
-    );
-
-    if (bytesReceived == SOCKET_ERROR)
+    // 7. Start the messaging loop
+    while (true)
     {
-        cerr << "Receive failed. Error: "
-            << WSAGetLastError() << endl;
+        char buffer[1024];
 
-        closesocket(clientSocket);
-        closesocket(serverSocket);
-        WSACleanup();
+        // Receive message from client
+        int bytesReceived = recv(
+            clientSocket,
+            buffer,
+            sizeof(buffer) - 1,
+            0
+        );
 
-        return 1;
+        if (bytesReceived == 0)
+        {
+            cout << "Client disconnected." << endl;
+            break;
+        }
+
+        if (bytesReceived == SOCKET_ERROR)
+        {
+            cerr << "Receive failed. Error: "
+                << WSAGetLastError() << endl;
+
+            break;
+        }
+
+        buffer[bytesReceived] = '\0';
+
+        cout << "Client: " << buffer << endl;
+
+
+        // Send response to client
+        string response = "Message received!";
+
+        int bytesSent = send(
+            clientSocket,
+            response.c_str(),
+            static_cast<int>(response.length()),
+            0
+        );
+
+        if (bytesSent == SOCKET_ERROR)
+        {
+            cerr << "Send failed. Error: "
+                << WSAGetLastError() << endl;
+
+            break;
+        }
+
+        cout << "Response sent to client."
+            << endl;
     }
 
-    buffer[bytesReceived] = '\0';
 
-    cout << "Client: " << buffer << endl;
-
-
-    // 8. Send a response to the client
-    const char* response = "Hello Client!";
-
-    int bytesSent = send(
-        clientSocket,
-        response,
-        static_cast<int>(strlen(response)),
-        0
-    );
-
-    if (bytesSent == SOCKET_ERROR)
-    {
-        cerr << "Send failed. Error: "
-            << WSAGetLastError() << endl;
-
-        closesocket(clientSocket);
-        closesocket(serverSocket);
-        WSACleanup();
-
-        return 1;
-    }
-
-    cout << "Response sent to client."
-        << endl;
-
-
-    // 9. Clean up
+    // 8. Clean up
     closesocket(clientSocket);
     closesocket(serverSocket);
     WSACleanup();
