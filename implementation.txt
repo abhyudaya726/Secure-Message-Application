@@ -1,0 +1,852 @@
+SECURE CHAT APPLICATION — IMPLEMENTATION PLAN
+==============================================
+
+Project Type:
+    Cybersecurity + C++ + Networking
+
+Goal:
+    Build a secure chat application in C++ that allows multiple users
+    to communicate through a server while implementing real cybersecurity
+    concepts such as authentication, password hashing, secure key exchange,
+    encryption, message authentication, and attack testing.
+
+
+==================================================
+1. PROJECT ARCHITECTURE
+==================================================
+
+Initial architecture:
+
+                SECURE CHAT APPLICATION
+
+        +---------------+
+        |   Client A    |
+        |    C++ App    |
+        +-------+-------+
+                |
+          TCP Connection
+                |
+                v
+        +---------------+
+        |    Server     |
+        |    C++ App    |
+        +-------+-------+
+                |
+          TCP Connection
+                |
+                v
+        +---------------+
+        |   Client B    |
+        |    C++ App    |
+        +---------------+
+
+
+Final architecture will eventually support:
+
+                    +----------------+
+                    |    Client A    |
+                    +-------+--------+
+                            |
+                            |
+                    +-------v--------+
+                    |                |
+                    |     SERVER     |
+                    |                |
+                    +---+---------+--+
+                        |         |
+                        |         |
+                 +------v--+   +--v-------+
+                 | Client B |   | Client C |
+                 +----------+   +----------+
+
+
+The server will manage connections and route messages between clients.
+
+
+==================================================
+2. TECHNOLOGIES
+==================================================
+
+Programming Language:
+    C++
+
+Networking:
+    TCP sockets
+
+Cryptography:
+    OpenSSL
+
+Build System:
+    CMake
+
+Version Control:
+    Git + GitHub
+
+Recommended Editors/IDEs:
+    - VS Code
+    - Visual Studio
+    - CLion
+
+Operating System:
+    Windows or Linux
+
+
+==================================================
+3. DEVELOPMENT PHILOSOPHY
+==================================================
+
+DO NOT try to implement the complete secure application at once.
+
+The project will be developed in layers.
+
+Development order:
+
+    1. Basic networking
+    2. Multi-client communication
+    3. User authentication
+    4. Password hashing
+    5. Secure key exchange
+    6. Symmetric encryption
+    7. Message authentication
+    8. Secure session handling
+    9. Security hardening
+    10. Attack/security testing
+    11. Optional GUI
+    12. Documentation and presentation
+
+
+Reason:
+
+If networking, cryptography, authentication, GUI, and databases are
+implemented simultaneously, debugging becomes extremely difficult.
+
+Instead:
+
+    NETWORKING
+        |
+        v
+    AUTHENTICATION
+        |
+        v
+    CRYPTOGRAPHY
+        |
+        v
+    SECURITY HARDENING
+        |
+        v
+    GUI
+
+
+Each layer should be working before moving to the next one.
+
+
+==================================================
+4. PROJECT DIRECTORY STRUCTURE
+==================================================
+
+Initial project structure:
+
+    secure-chat/
+    |
+    +-- server/
+    |   |
+    |   +-- server.cpp
+    |
+    +-- client/
+    |   |
+    |   +-- client.cpp
+    |
+    +-- CMakeLists.txt
+    |
+    +-- README.md
+
+
+The structure will become more organized as the project grows.
+
+Possible final structure:
+
+    secure-chat/
+    |
+    +-- server/
+    |   +-- server.cpp
+    |   +-- server.h
+    |
+    +-- client/
+    |   +-- client.cpp
+    |   +-- client.h
+    |
+    +-- crypto/
+    |   +-- crypto.cpp
+    |   +-- crypto.h
+    |
+    +-- auth/
+    |   +-- auth.cpp
+    |   +-- auth.h
+    |
+    +-- network/
+    |   +-- socket.cpp
+    |   +-- socket.h
+    |
+    +-- database/
+    |   +-- database.cpp
+    |   +-- database.h
+    |
+    +-- tests/
+    |
+    +-- CMakeLists.txt
+    |
+    +-- README.md
+
+
+==================================================
+5. PHASE 1 — BASIC TCP NETWORKING
+==================================================
+
+The first goal is NOT security.
+
+The first goal is to successfully establish communication between:
+
+    Client A <----> Server
+
+
+The server should:
+
+    1. Create a socket
+    2. Bind the socket to a port
+    3. Listen for connections
+    4. Accept a client connection
+    5. Receive messages
+    6. Send responses
+    7. Close the connection when finished
+
+
+The client should:
+
+    1. Create a socket
+    2. Connect to the server
+    3. Send messages
+    4. Receive responses
+    5. Close the connection
+
+
+Basic server socket lifecycle:
+
+    socket()
+        |
+        v
+    bind()
+        |
+        v
+    listen()
+        |
+        v
+    accept()
+        |
+        v
+    recv() / send()
+        |
+        v
+    close()
+
+
+Basic client socket lifecycle:
+
+    socket()
+        |
+        v
+    connect()
+        |
+        v
+    send() / recv()
+        |
+        v
+    close()
+
+
+==================================================
+6. FIRST MILESTONE
+==================================================
+
+The first working version should behave approximately like this.
+
+
+SERVER:
+
+    Server started.
+    Waiting for connection...
+
+    Client connected.
+
+    Client: Hello server!
+    Server: Hello client!
+
+
+CLIENT:
+
+    Connected to server.
+
+    You: Hello server!
+    Server: Hello client!
+
+
+At this stage:
+
+    - No encryption
+    - No login system
+    - No database
+    - No GUI
+    - No advanced security
+
+
+The purpose is to understand TCP networking first.
+
+
+==================================================
+7. PHASE 2 — MULTI-CLIENT CHAT
+==================================================
+
+After basic client/server communication works, the server should support
+multiple clients.
+
+Example:
+
+                    +-------------+
+                    |   Server    |
+                    +------+------+
+                           |
+              +------------+------------+
+              |            |            |
+              v            v            v
+          Client A     Client B     Client C
+
+
+Example:
+
+    Alice:
+        Hello everyone!
+
+    Bob:
+        Hi Alice!
+
+    Charlie:
+        Hey!
+
+
+The server will receive messages from one client and forward them
+to the appropriate client(s).
+
+
+Possible concepts to learn:
+
+    - Threads
+    - Mutexes
+    - Concurrent connections
+    - Client management
+    - Message routing
+
+
+==================================================
+8. PHASE 3 — USER AUTHENTICATION
+==================================================
+
+Add a login/registration system.
+
+Example:
+
+    Username: alice
+    Password: ********
+
+
+The server verifies the user's credentials.
+
+Basic flow:
+
+    Client
+        |
+        | username + password
+        v
+    Server
+        |
+        v
+    Authentication system
+        |
+        v
+    Verify credentials
+        |
+        +----> Authentication successful
+        |
+        +----> Authentication failed
+
+
+IMPORTANT:
+
+Passwords must NOT be stored as plaintext.
+
+
+Instead:
+
+    Password
+        |
+        v
+    Password hashing algorithm
+        |
+        v
+    Password hash
+        |
+        v
+    Database
+
+
+Possible password hashing approaches include:
+
+    - Argon2
+    - bcrypt
+    - PBKDF2
+
+
+The exact choice will be made during implementation.
+
+
+==================================================
+9. PHASE 4 — CRYPTOGRAPHY
+==================================================
+
+Once networking and authentication work, introduce encryption.
+
+Conceptually:
+
+    Alice
+      |
+      | Plaintext
+      v
+    Encryption
+      |
+      | Ciphertext
+      v
+    Server
+      |
+      | Ciphertext
+      v
+    Bob
+      |
+      v
+    Decryption
+      |
+      | Plaintext
+      v
+    Bob's application
+
+
+Important cryptography concepts to learn:
+
+    - Symmetric encryption
+    - Asymmetric encryption
+    - Hashing
+    - Message Authentication Codes (MAC)
+    - Authenticated Encryption
+    - Key exchange
+    - Digital signatures
+
+
+Do NOT invent a custom encryption algorithm.
+
+Use established cryptographic algorithms and trusted libraries such
+as OpenSSL.
+
+
+==================================================
+10. PHASE 5 — SECURE KEY EXCHANGE
+==================================================
+
+The clients need a secure way to establish cryptographic keys.
+
+Conceptually:
+
+    Alice                           Bob
+      |                              |
+      |---- Public information ----> |
+      |                              |
+      | <--- Public information ---- |
+      |                              |
+      +------ Shared secret ---------+
+
+
+A key-exchange mechanism will be used to establish shared cryptographic
+material without directly transmitting the secret key in plaintext.
+
+The exact protocol/algorithm will be selected during implementation.
+
+
+==================================================
+11. PHASE 6 — MESSAGE AUTHENTICATION
+==================================================
+
+Encryption alone is not sufficient.
+
+We also need to detect whether a message has been modified.
+
+Conceptually:
+
+    Message
+       +
+    Authentication information
+       |
+       v
+    Send over network
+       |
+       v
+    Receiver
+       |
+       v
+    Verify authenticity
+       |
+       +----> Valid
+       |
+       +----> Modified / Invalid
+
+
+This introduces concepts such as:
+
+    - Authentication tags
+    - MACs
+    - AEAD
+    - Integrity verification
+
+
+A suitable authenticated-encryption mechanism will be selected during
+implementation.
+
+
+==================================================
+12. PHASE 7 — SECURE SESSION MANAGEMENT
+==================================================
+
+The application should manage authenticated user sessions securely.
+
+Possible concepts:
+
+    - Session identifiers
+    - Session expiration
+    - Logout
+    - Session validation
+    - Preventing unauthorized reuse
+    - Secure key/session handling
+
+
+The exact implementation will be designed after the authentication
+and encryption systems are working.
+
+
+==================================================
+13. PHASE 8 — SECURITY HARDENING
+==================================================
+
+After the core application works, security weaknesses will be
+identified and addressed.
+
+Areas to consider:
+
+    - Input validation
+    - Buffer handling
+    - Authentication failures
+    - Brute-force protection
+    - Session security
+    - Error handling
+    - Secure memory handling
+    - Connection handling
+    - Rate limiting
+    - Malformed messages
+    - Unauthorized access
+
+
+The goal is to avoid introducing common vulnerabilities into the
+application.
+
+
+==================================================
+14. PHASE 9 — SECURITY / ATTACK TESTING
+==================================================
+
+This is one of the most important parts of the project.
+
+The application should be tested in a controlled lab environment.
+
+Possible scenarios:
+
+    1. Plaintext network traffic
+    2. Encrypted network traffic
+    3. Message modification
+    4. Replay attempts
+    5. Brute-force login attempts
+    6. Invalid authentication
+    7. Malformed input
+    8. Unauthorized access attempts
+    9. Session-related attacks
+    10. Packet inspection
+
+
+Example:
+
+WITHOUT ENCRYPTION:
+
+    Alice ---- "Hello Bob!" ----> Server
+                         ^
+                         |
+                     Attacker
+
+
+The attacker may be able to observe the plaintext message.
+
+
+WITH ENCRYPTION:
+
+    Alice ---- "8fA92x..." ----> Server
+                         ^
+                         |
+                     Attacker
+
+
+The attacker sees ciphertext rather than the original message.
+
+
+The project should demonstrate the difference between the insecure
+and secure implementations.
+
+
+IMPORTANT:
+
+All security testing should be performed only against systems,
+machines, networks, and accounts that we own or have explicit
+permission to test.
+
+
+==================================================
+15. OPTIONAL PHASE — GUI
+==================================================
+
+After the command-line version is completely functional and secure,
+a graphical interface can be added.
+
+Possible GUI technologies:
+
+    - Qt
+    - Dear ImGui
+    - Other suitable C++ GUI frameworks
+
+
+Example final interface:
+
+    +-------------------------------------------+
+    |             SECURE CHAT                   |
+    +-------------------------------------------+
+    |                                           |
+    |  Alice: Hey!                              |
+    |                                           |
+    |  Bob: Hello!                              |
+    |                                           |
+    |  Alice: How are you?                      |
+    |                                           |
+    +-------------------------------------------+
+    | Type message...                    [Send] |
+    +-------------------------------------------+
+
+
+GUI development should come AFTER the core networking and security
+systems work.
+
+
+==================================================
+16. FINAL PROJECT FLOW
+==================================================
+
+The complete development roadmap:
+
+    STEP 1
+        |
+        v
+    Set up C++ environment
+        |
+        v
+    STEP 2
+        |
+        v
+    Create TCP server
+        |
+        v
+    STEP 3
+        |
+        v
+    Create TCP client
+        |
+        v
+    STEP 4
+        |
+        v
+    Establish basic communication
+        |
+        v
+    STEP 5
+        |
+        v
+    Support multiple clients
+        |
+        v
+    STEP 6
+        |
+        v
+    Implement user registration/login
+        |
+        v
+    STEP 7
+        |
+        v
+    Implement secure password hashing
+        |
+        v
+    STEP 8
+        |
+        v
+    Implement secure key exchange
+        |
+        v
+    STEP 9
+        |
+        v
+    Implement authenticated encryption
+        |
+        v
+    STEP 10
+        |
+        v
+    Implement secure sessions
+        |
+        v
+    STEP 11
+        |
+        v
+    Security hardening
+        |
+        v
+    STEP 12
+        |
+        v
+    Security/attack testing
+        |
+        v
+    STEP 13
+        |
+        v
+    Optional GUI
+        |
+        v
+    STEP 14
+        |
+        v
+    Documentation + presentation
+
+
+==================================================
+17. FIRST TASK
+==================================================
+
+Before writing the actual application:
+
+    1. Determine operating system:
+        - Windows
+        - Linux
+        - macOS
+
+    2. Determine IDE/editor:
+        - VS Code
+        - Visual Studio
+        - CLion
+        - Other
+
+    3. Verify that C++ compilation works.
+
+    4. Install/configure the required networking and build tools.
+
+    5. Create the initial project structure.
+
+    6. Write the first server.cpp.
+
+    7. Write the first client.cpp.
+
+    8. Compile both programs.
+
+    9. Run the server.
+
+    10. Run the client.
+
+    11. Establish the first TCP connection.
+
+    12. Send the first message.
+
+
+FIRST MAJOR GOAL:
+
+    Client <---- TCP ----> Server
+
+    Successfully send and receive a message.
+
+
+Only after this works should we move on to multi-client
+communication and cybersecurity features.
+
+
+==================================================
+18. PROJECT PRINCIPLE
+==================================================
+
+The most important rule for this project:
+
+    UNDERSTAND WHAT WE BUILD.
+
+Do not blindly copy code.
+
+For every major component, understand:
+
+    - What it does
+    - Why it is needed
+    - How it works
+    - What security problem it solves
+    - What could go wrong
+    - How we can test it
+
+
+The final goal is not just to have a working chat application.
+
+The goal is to be able to explain the entire system during a
+college demonstration or viva.
+
+For example, you should eventually be able to explain:
+
+    "Why did we use TCP?"
+
+    "Why can't we store passwords directly?"
+
+    "What is hashing?"
+
+    "Why isn't hashing the same as encryption?"
+
+    "How are encryption keys established?"
+
+    "How does the server know a message wasn't modified?"
+
+    "What happens if an attacker captures a packet?"
+
+    "What happens if someone sends malformed input?"
+
+    "What security mechanisms protect the application?"
+
+    "What are the limitations of our implementation?"
+
+
+FINAL OBJECTIVE:
+
+    Build it.
+    Understand it.
+    Break-test it.
+    Secure it.
+    Document it.
+    Be able to explain it.
