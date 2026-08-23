@@ -1,6 +1,7 @@
 #include <iostream>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <cstring>
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -80,11 +81,58 @@ int main()
          << endl;
 
 
-    // Keep the client running for now
-    cin.get();
+    // 5. Send a message to the server
+    const char* message = "Hello Server!";
+
+    int bytesSent = send(
+        clientSocket,
+        message,
+        static_cast<int>(strlen(message)),
+        0
+    );
+
+    if (bytesSent == SOCKET_ERROR)
+    {
+        cerr << "Send failed. Error: "
+            << WSAGetLastError() << endl;
+
+        closesocket(clientSocket);
+        WSACleanup();
+
+        return 1;
+    }
+
+    cout << "Message sent to server."
+        << endl;
 
 
-    // 5. Clean up
+    // 6. Receive the server's response
+    char buffer[1024];
+
+    int bytesReceived = recv(
+        clientSocket,
+        buffer,
+        sizeof(buffer) - 1,
+        0
+    );
+
+    if (bytesReceived == SOCKET_ERROR)
+    {
+        cerr << "Receive failed. Error: "
+            << WSAGetLastError() << endl;
+
+        closesocket(clientSocket);
+        WSACleanup();
+
+        return 1;
+    }
+
+    buffer[bytesReceived] = '\0';
+
+    cout << "Server: " << buffer << endl;
+
+
+    // 7. Clean up
     closesocket(clientSocket);
     WSACleanup();
 
