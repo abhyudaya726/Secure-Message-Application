@@ -23,13 +23,41 @@ v0.5 — Continuous Chat
 - Enabled multiple messages to be exchanged within a single connection.
 - Improved connection and message-handling flow.
 
+v0.6 — User Input
+- Replaced hard-coded messages with user-entered messages.
+- Added getline() for handling complete messages.
+
+v0.7 — Graceful Disconnect
+- Added /quit command for the client.
+- Implemented graceful client disconnection.
+- Added handling for recv() returning 0.
+- Improved socket cleanup and connection termination.
+
+v0.8 — Multi-Client Support
+- Refactored server-side client handling into handleClient().
+- Added std::thread for concurrent client handling.
+- Modified the server to continuously accept new clients.
+- Enabled multiple clients to maintain independent connections.
+
+v0.9 — Client Management
+- Added a shared list of connected client sockets.
+- Added std::mutex for thread-safe access to the client list.
+- Added automatic removal of disconnected clients.
+- Improved connected-client tracking and client lifecycle management.
+
 CURRENT STATUS
 - Basic TCP chat communication is functional.
-- Client-server networking foundation is complete.
+- Continuous messaging is functional.
+- Graceful client disconnection is implemented.
+- Multi-client support is functional.
+- Concurrent client handling using threads is implemented.
+- Connected clients are tracked using a thread-safe client list.
+- Disconnected clients are automatically removed from the client list.
 
 NEXT
-- Multi-client support
-- Concurrent client handling
+- Message broadcasting between clients
+- Improved multi-client chat functionality
 - Authentication
 - Encryption
 - Secure communication / TLS
+- Security hardening and testing

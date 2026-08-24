@@ -1,10 +1,84 @@
 #include <iostream>
 #include <winsock2.h>
 #include <cstring>
+#include <string>
+#include <thread>
+#include <vector>
+#include <mutex>
+
 
 #pragma comment(lib, "ws2_32.lib")
 
 using namespace std;
+
+vector<SOCKET> clients;
+mutex clientsMutex;
+
+void handleClient(SOCKET clientSocket){
+    while (true)
+    {
+        char buffer[1024];
+
+        // Receive message from client
+        int bytesReceived = recv(
+            clientSocket,
+            buffer,
+            sizeof(buffer) - 1,
+            0
+        );
+
+        if (bytesReceived == 0)
+        {
+            // cout << "Client disconnected." << endl;
+            break;
+        }
+
+        if (bytesReceived == SOCKET_ERROR)
+        {
+            cerr << "Receive failed. Error: "
+                << WSAGetLastError() << endl;
+
+            break;
+        }
+
+        buffer[bytesReceived] = '\0';
+
+        cout << "Client: " << buffer << endl;
+
+
+        // Send response to client
+        string response = "Message received!";
+
+        int bytesSent = send(
+            clientSocket,
+            response.c_str(),
+            static_cast<int>(response.length()),
+            0
+        );
+
+        if (bytesSent == SOCKET_ERROR)
+        {
+            cerr << "Send failed. Error: "
+                << WSAGetLastError() << endl;
+
+            break;
+        }
+
+        cout << "Response sent to client."<< endl;
+    }
+
+    //Remove Client
+    lock_guard<mutex> lock(clientsMutex);
+    for(auto it = clients.begin(); it != clients.end(); it++){
+        if(*it == clientSocket){
+            clients.erase(it);
+            break;
+        }
+    }
+    cout<<"Client Disconnected. Connected Clients: "<<clients.size()<<endl;
+
+    closesocket(clientSocket);
+}
 
 int main()
 {
@@ -94,87 +168,39 @@ int main()
 
 
     // 6. Accept an incoming client connection
-    sockaddr_in clientAddress{};
-    int clientAddressSize = sizeof(clientAddress);
 
-    SOCKET clientSocket = accept(
-        serverSocket,
-        reinterpret_cast<sockaddr*>(&clientAddress),
-        &clientAddressSize
-    );
+    while(true){
+        sockaddr_in clientAddress{};
+        int clientAddressSize = sizeof(clientAddress);
 
-    if (clientSocket == INVALID_SOCKET)
-    {
-        cerr << "Accept failed. Error: "
-            << WSAGetLastError() << endl;
-
-        closesocket(serverSocket);
-        WSACleanup();
-
-        return 1;
-    }
-
-    cout << "Client connected successfully."
-        << endl;
-
-
-    // 7. Start the messaging loop
-    while (true)
-    {
-        char buffer[1024];
-
-        // Receive message from client
-        int bytesReceived = recv(
-            clientSocket,
-            buffer,
-            sizeof(buffer) - 1,
-            0
+        SOCKET clientSocket = accept(
+            serverSocket,
+            reinterpret_cast<sockaddr*>(&clientAddress),
+            &clientAddressSize
         );
 
-        if (bytesReceived == 0)
+        if (clientSocket == INVALID_SOCKET)
         {
-            cout << "Client disconnected." << endl;
-            break;
-        }
-
-        if (bytesReceived == SOCKET_ERROR)
-        {
-            cerr << "Receive failed. Error: "
+            cerr << "Accept failed. Error: "
                 << WSAGetLastError() << endl;
 
             break;
         }
 
-        buffer[bytesReceived] = '\0';
+        cout << "Client connected successfully."<< endl;
 
-        cout << "Client: " << buffer << endl;
+        lock_guard<mutex> lock(clientsMutex);
+        clients.push_back(clientSocket);
 
+        cout<<"Connected Clients: "<<clients.size()<<endl;
 
-        // Send response to client
-        string response = "Message received!";
-
-        int bytesSent = send(
-            clientSocket,
-            response.c_str(),
-            static_cast<int>(response.length()),
-            0
-        );
-
-        if (bytesSent == SOCKET_ERROR)
-        {
-            cerr << "Send failed. Error: "
-                << WSAGetLastError() << endl;
-
-            break;
-        }
-
-        cout << "Response sent to client."
-            << endl;
+        // 7. Start the messaging loop
+        thread clientThread(handleClient, clientSocket);
+        clientThread.detach();
     }
-
+    
 
     // 8. Clean up
-    closesocket(clientSocket);
     closesocket(serverSocket);
     WSACleanup();
 
