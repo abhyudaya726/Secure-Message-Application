@@ -1,0 +1,35 @@
+SECURE CHAT APPLICATION — DEVELOPMENT LOG
+
+v0.1 — Project Initialization
+- Set up the C++ client-server project structure.
+- Established TCP socket-based communication.
+
+v0.2 — Server Implementation
+- Implemented server socket creation and configuration.
+- Added bind(), listen(), and accept().
+- Configured the server to listen on port 54000.
+
+v0.3 — Client Implementation
+- Implemented client socket creation.
+- Added server connection using 127.0.0.1:54000.
+- Established client-server connection.
+
+v0.4 — Basic Communication
+- Implemented send() and recv().
+- Enabled message exchange between client and server.
+
+v0.5 — Continuous Chat
+- Added continuous communication loops.
+- Enabled multiple messages to be exchanged within a single connection.
+- Improved connection and message-handling flow.
+
+CURRENT STATUS
+- Basic TCP chat communication is functional.
+- Client-server networking foundation is complete.
+
+NEXT
+- Multi-client support
+- Concurrent client handling
+- Authentication
+- Encryption
+- Secure communication / TLS
