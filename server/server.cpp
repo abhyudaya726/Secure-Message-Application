@@ -14,71 +14,9 @@ using namespace std;
 vector<SOCKET> clients;
 mutex clientsMutex;
 
-void handleClient(SOCKET clientSocket){
-    while (true)
-    {
-        char buffer[1024];
+void broadcastMessage(const string& message);
+void handleClient(SOCKET clientSocket);
 
-        // Receive message from client
-        int bytesReceived = recv(
-            clientSocket,
-            buffer,
-            sizeof(buffer) - 1,
-            0
-        );
-
-        if (bytesReceived == 0)
-        {
-            // cout << "Client disconnected." << endl;
-            break;
-        }
-
-        if (bytesReceived == SOCKET_ERROR)
-        {
-            cerr << "Receive failed. Error: "
-                << WSAGetLastError() << endl;
-
-            break;
-        }
-
-        buffer[bytesReceived] = '\0';
-
-        cout << "Client: " << buffer << endl;
-
-
-        // Send response to client
-        string response = "Message received!";
-
-        int bytesSent = send(
-            clientSocket,
-            response.c_str(),
-            static_cast<int>(response.length()),
-            0
-        );
-
-        if (bytesSent == SOCKET_ERROR)
-        {
-            cerr << "Send failed. Error: "
-                << WSAGetLastError() << endl;
-
-            break;
-        }
-
-        cout << "Response sent to client."<< endl;
-    }
-
-    //Remove Client
-    lock_guard<mutex> lock(clientsMutex);
-    for(auto it = clients.begin(); it != clients.end(); it++){
-        if(*it == clientSocket){
-            clients.erase(it);
-            break;
-        }
-    }
-    cout<<"Client Disconnected. Connected Clients: "<<clients.size()<<endl;
-
-    closesocket(clientSocket);
-}
 
 int main()
 {
@@ -205,4 +143,70 @@ int main()
     WSACleanup();
 
     return 0;
+}
+
+void handleClient(SOCKET clientSocket){
+    while (true)
+    {
+        char buffer[1024];
+
+        // Receive message from client
+        int bytesReceived = recv(
+            clientSocket,
+            buffer,
+            sizeof(buffer) - 1,
+            0
+        );
+
+        if (bytesReceived == 0){
+            break;
+        }
+
+        if (bytesReceived == SOCKET_ERROR)
+        {
+            int error = WSAGetLastError();
+            if (error != WSAECONNRESET){
+                cerr << "Receive failed. Error: "<< error << endl;
+            }
+
+            break;
+        }
+
+        buffer[bytesReceived] = '\0';
+
+        cout << "Client: " << buffer << endl;
+
+
+        //Broadcast message to all clients
+        broadcastMessage(buffer);
+    }
+
+    //Remove Client
+    lock_guard<mutex> lock(clientsMutex);
+    for(auto it = clients.begin(); it != clients.end(); it++){
+        if(*it == clientSocket){
+            clients.erase(it);
+            break;
+        }
+    }
+    cout<<"Client Disconnected. Connected Clients: "<<clients.size()<<endl;
+
+    closesocket(clientSocket);
+}
+
+void broadcastMessage(const string& message){
+    lock_guard<mutex> lock(clientsMutex);
+
+    for(SOCKET client : clients){
+        int bytesSent = send(
+            client,
+            message.c_str(),
+            static_cast<int>(message.length()),
+            0
+        );
+
+        if(bytesSent == SOCKET_ERROR){
+            cerr<<"Broadcast failed. Error: "<<WSAGetLastError()<<endl;
+        }
+    }
 }

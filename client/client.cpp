@@ -3,10 +3,14 @@
 #include <ws2tcpip.h>
 #include <string>
 #include <cstring>
+#include <thread>
 
 #pragma comment(lib, "ws2_32.lib")
 
 using namespace std;
+bool shuttingDown = false;
+
+void receiveMessages(SOCKET clientSocket);
 
 int main()
 {
@@ -78,8 +82,8 @@ int main()
         return 1;
     }
 
-    cout << "Connected to server successfully."
-         << endl;
+    cout << "Connected to server successfully."<< endl;
+    thread receiveThread(receiveMessages, clientSocket);
 
 
     // 5. Start the messaging loop
@@ -94,6 +98,7 @@ int main()
         if (message == "/quit")
         {
             cout << "Closing connection..." << endl;
+            shuttingDown = true;
             break;
         }
 
@@ -112,41 +117,40 @@ int main()
 
             break;
         }
-
-
-        // Receive response from server
-        char buffer[1024];
-
-        int bytesReceived = recv(
-            clientSocket,
-            buffer,
-            sizeof(buffer) - 1,
-            0
-        );
-
-        if (bytesReceived == 0)
-        {
-            cout << "Server disconnected." << endl;
-            break;
-        }
-
-        if (bytesReceived == SOCKET_ERROR)
-        {
-            cerr << "Receive failed. Error: "
-                << WSAGetLastError() << endl;
-
-            break;
-        }
-
-        buffer[bytesReceived] = '\0';
-
-        cout << "Server: " << buffer << endl;
     }
 
 
     // 6. Clean up
     closesocket(clientSocket);
+    if(receiveThread.joinable()) receiveThread.join();
     WSACleanup();
 
     return 0;
+}
+
+void receiveMessages(SOCKET clientSocket){
+    while(true){
+        char buffer[1024];
+
+        int bytesReceived = recv(
+            clientSocket,
+            buffer,
+            sizeof(buffer)-1,
+            0
+        );
+
+        if(bytesReceived == 0){
+            if (!shuttingDown) cout << "\nServer disconnected." << endl;
+            break;
+        }
+        if(bytesReceived == SOCKET_ERROR){
+            if(!shuttingDown) cerr << "\nReceive failed. Error: "<< WSAGetLastError()<< endl;
+            break;
+        }
+
+        buffer[bytesReceived] = '\0';
+
+        cout << "\nServer: " << buffer << endl;
+        cout << "You: ";
+    }
 }

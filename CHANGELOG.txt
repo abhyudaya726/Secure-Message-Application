@@ -45,6 +45,22 @@ v0.9 — Client Management
 - Added automatic removal of disconnected clients.
 - Improved connected-client tracking and client lifecycle management.
 
+v1.0 — Message Broadcasting
+- Implemented server-side message broadcasting.
+- Enabled messages to be sent to all connected clients.
+- Replaced the single-client response mechanism with multi-client broadcasting.
+
+v1.1 — Asynchronous Client Receiving
+- Added a dedicated receiving thread to the client.
+- Enabled clients to receive messages without sending a message first.
+- Separated user input/sending from message receiving.
+- Improved client-side concurrent communication.
+
+v1.2 — Connection Error Handling
+- Improved handling of expected client and server disconnections.
+- Added handling for Winsock connection errors during intentional shutdown.
+- Improved graceful connection termination behavior.
+
 CURRENT STATUS
 - Basic TCP chat communication is functional.
 - Continuous messaging is functional.
@@ -53,10 +69,13 @@ CURRENT STATUS
 - Concurrent client handling using threads is implemented.
 - Connected clients are tracked using a thread-safe client list.
 - Disconnected clients are automatically removed from the client list.
+- Message broadcasting between multiple clients is functional.
+- Clients can receive messages asynchronously.
+- Basic multi-user chat functionality is operational.
 
 NEXT
-- Message broadcasting between clients
-- Improved multi-client chat functionality
+- Usernames / client identity
+- Improved chat interface
 - Authentication
 - Encryption
 - Secure communication / TLS
