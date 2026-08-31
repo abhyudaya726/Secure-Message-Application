@@ -11,7 +11,12 @@
 
 using namespace std;
 
-vector<SOCKET> clients;
+struct Client{
+    SOCKET socket;
+    string username;
+};
+
+vector<Client> clients;
 mutex clientsMutex;
 
 void broadcastMessage(const string& message);
@@ -128,7 +133,11 @@ int main()
         cout << "Client connected successfully."<< endl;
 
         lock_guard<mutex> lock(clientsMutex);
-        clients.push_back(clientSocket);
+
+        Client newClient;
+        newClient.socket = clientSocket;
+        newClient.username = "";
+        clients.push_back(newClient);
 
         cout<<"Connected Clients: "<<clients.size()<<endl;
 
@@ -146,6 +155,36 @@ int main()
 }
 
 void handleClient(SOCKET clientSocket){
+    char usernameBuffer[1024];
+
+    int bytesReceived = recv(
+        clientSocket,
+        usernameBuffer,
+        sizeof(usernameBuffer) - 1,
+        0
+    );
+    if(bytesReceived <= 0){
+        closesocket(clientSocket);
+        return;
+    }
+
+    usernameBuffer[bytesReceived] = '\0';
+    string username = usernameBuffer;
+    cout<<"Client Username: "<<username<<endl;
+
+    {
+        lock_guard<mutex> lock(clientsMutex);
+
+        for (Client& client : clients)
+        {
+            if (client.socket == clientSocket)
+            {
+                client.username = username;
+                break;
+            }
+        }
+    }
+
     while (true)
     {
         char buffer[1024];
@@ -184,7 +223,7 @@ void handleClient(SOCKET clientSocket){
     //Remove Client
     lock_guard<mutex> lock(clientsMutex);
     for(auto it = clients.begin(); it != clients.end(); it++){
-        if(*it == clientSocket){
+        if(it->socket == clientSocket){
             clients.erase(it);
             break;
         }
@@ -197,9 +236,9 @@ void handleClient(SOCKET clientSocket){
 void broadcastMessage(const string& message){
     lock_guard<mutex> lock(clientsMutex);
 
-    for(SOCKET client : clients){
+    for(Client client : clients){
         int bytesSent = send(
-            client,
+            client.socket,
             message.c_str(),
             static_cast<int>(message.length()),
             0

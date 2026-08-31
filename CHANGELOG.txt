@@ -61,6 +61,12 @@ v1.2 — Connection Error Handling
 - Added handling for Winsock connection errors during intentional shutdown.
 - Improved graceful connection termination behavior.
 
+v1.3 — Client Identity
+- Added a Client structure to store socket and username information.
+- Updated the connected-client list to store Client objects.
+- Added username registration when a client connects.
+- Associated usernames with their respective client sockets.
+
 CURRENT STATUS
 - Basic TCP chat communication is functional.
 - Continuous messaging is functional.
@@ -71,10 +77,10 @@ CURRENT STATUS
 - Disconnected clients are automatically removed from the client list.
 - Message broadcasting between multiple clients is functional.
 - Clients can receive messages asynchronously.
-- Basic multi-user chat functionality is operational.
+- Username registration and client identity tracking are implemented.
 
 NEXT
-- Usernames / client identity
+- Display usernames with broadcast messages
 - Improved chat interface
 - Authentication
 - Encryption

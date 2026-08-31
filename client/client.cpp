@@ -83,6 +83,28 @@ int main()
     }
 
     cout << "Connected to server successfully."<< endl;
+
+    string username;
+    cout<<"Enter your username: ";
+    getline(cin, username);
+
+    int bytesSent = send(
+        clientSocket,
+        username.c_str(),
+        static_cast<int>(username.length()),
+        0
+    );
+
+    if (bytesSent == SOCKET_ERROR)
+    {
+        cerr << "Failed to send username. Error: "<< WSAGetLastError() << endl;
+
+        closesocket(clientSocket);
+        WSACleanup();
+
+        return 1;
+    }
+
     thread receiveThread(receiveMessages, clientSocket);
 
 
